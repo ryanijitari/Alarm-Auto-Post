@@ -34,3 +34,8 @@ Workflow juga otomatis build ulang saat source Android di-push ke branch `main` 
 ## Catatan APK debug
 
 Versi workflow ini menghasilkan **debug APK**, cocok untuk tes pribadi dan pemasangan langsung. Untuk distribusi jangka panjang/update tanpa perubahan signature, tahap berikutnya sebaiknya memakai **signed release APK** dengan keystore yang disimpan sebagai GitHub Secrets.
+
+
+## v1.0.3
+- Kotlin compile fix pada fungsi schedule AlarmBridge.
+- Tetap memakai Java/Kotlin JVM 17.

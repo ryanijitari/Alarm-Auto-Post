@@ -60,15 +60,44 @@ class MainActivity : android.app.Activity() {
     private fun requestNotificationPermission(){if(Build.VERSION.SDK_INT>=33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED) requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS),33)}
 
     inner class AlarmBridge(private val ctx:Context){
-        @JavascriptInterface fun schedule(id:String, iso:String, title:String, url:String):Boolean = try {
-            val whenMs=OffsetDateTime.parse(iso).toInstant().toEpochMilli(); if(whenMs<=System.currentTimeMillis())return false
-            val am=getSystemService(AlarmManager::class.java)
-            if(Build.VERSION.SDK_INT>=31 && !am.canScheduleExactAlarms()){ startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:$packageName")));return false }
-            val i=Intent(ctx,AlarmReceiver::class.java).putExtra("id",id).putExtra("title",title).putExtra("url",url)
-            val pi=PendingIntent.getBroadcast(ctx,id.hashCode(),i,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,whenMs,pi)
-            runOnUiThread{Toast.makeText(ctx,"Alarm draft tersimpan di HP",Toast.LENGTH_SHORT).show()};true
-        } catch(e:Exception){false}
+        @JavascriptInterface
+        fun schedule(id:String, iso:String, title:String, url:String):Boolean {
+            return try {
+                val whenMs = OffsetDateTime.parse(iso).toInstant().toEpochMilli()
+                if (whenMs <= System.currentTimeMillis()) {
+                    false
+                } else {
+                    val am = getSystemService(AlarmManager::class.java)
+                    if (Build.VERSION.SDK_INT >= 31 && !am.canScheduleExactAlarms()) {
+                        startActivity(
+                            Intent(
+                                Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                                Uri.parse("package:$packageName")
+                            )
+                        )
+                        false
+                    } else {
+                        val i = Intent(ctx, AlarmReceiver::class.java)
+                            .putExtra("id", id)
+                            .putExtra("title", title)
+                            .putExtra("url", url)
+                        val pi = PendingIntent.getBroadcast(
+                            ctx,
+                            id.hashCode(),
+                            i,
+                            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                        )
+                        am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, whenMs, pi)
+                        runOnUiThread {
+                            Toast.makeText(ctx, "Alarm draft tersimpan di HP", Toast.LENGTH_SHORT).show()
+                        }
+                        true
+                    }
+                }
+            } catch (e: Exception) {
+                false
+            }
+        }
         @JavascriptInterface fun cancel(id:String){val am=getSystemService(AlarmManager::class.java);val i=Intent(ctx,AlarmReceiver::class.java);val pi=PendingIntent.getBroadcast(ctx,id.hashCode(),i,PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE);if(pi!=null)am.cancel(pi)}
     }
 }
